@@ -1,0 +1,49 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - master
+ 
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: Install ansible
+        run: sudo apt-add-repository ppa:ansible/ansible -y && sudo apt update -y && sudo apt install ansible -y 
+      
+      - name: Install docker
+        run: ansible-playbook ./ansible/playbook.yml -i ./ansible/hosts.txt
+        
+      - name: Run docker compose
+        run : sudo docker compose up -d
+        
+      - name: Install composer
+        run : sudo docker exec project_app composer install
+        
+      - name : Set laravel configs
+        run : sudo docker exec project_app chmod -R 777 storage 
+              && sudo docker exec project_app cp .env.example .env 
+              && sudo docker exec project_app php artisan key:generate 
+              && sudo docker exec project_app chmod 777 .env 
+              && sudo docker exec project_app echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> ./.env
+              && sudo docker exec project_app echo "AWS_BUCKET=${{ secrets.AWS_BUCKET }}" >> ./.env
+              && sudo docker exec project_app echo "AWS_DEFAULT_REGION=${{ secrets.AWS_DEFAULT_REGION }}" >> ./.env
+              && sudo docker exec project_app echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ./.env
+              && sudo docker exec project_app echo "AWS_URL=${{ secrets.AWS_URL }}" >> ./.env
+              && sudo docker exec project_app echo "DB_CONNECTION=${{ secrets.DB_CONNECTION }}" >> ./.env
+              && sudo docker exec project_app echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> ./.env
+              && sudo docker exec project_app echo "DB_HOST=${{ secrets.DB_HOST }}" >> ./.env
+              && sudo docker exec project_app echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> ./.env
+              && sudo docker exec project_app echo "DB_PORT=${{ secrets.DB_PORT }}" >> ./.env
+              && sudo docker exec project_app echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> ./.env
+              
+      - name : migrate database 
+        run :  sudo docker exec project_app php artisan migrate
+          
+
+      
