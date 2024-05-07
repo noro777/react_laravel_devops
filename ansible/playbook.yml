@@ -44,7 +44,7 @@
         update_cache: true
 
     - name: Install Docker Module for Python
-      apt:
+      pip:
         name: docker
         
     - name: adding users to group docker
