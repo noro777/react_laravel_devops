@@ -40,12 +40,12 @@
     - name: Update apt and install docker-ce
       apt:
         name: docker-ce
-        state: present
+        state: latest
         update_cache: true
 
     - name: Install Docker Module for Python
-      apt:
-        name: python-docker
+      pip:
+        name: docker
          
     - name: adding users to group docker
       user:
