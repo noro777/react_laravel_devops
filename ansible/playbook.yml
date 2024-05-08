@@ -46,7 +46,7 @@
     - name: Install Docker Module for Python
       apt:
         name: docker
-        
+         
     - name: adding users to group docker
       user:
         name: '{{ item }}'
